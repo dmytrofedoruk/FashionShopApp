@@ -1,0 +1,55 @@
+namespace: fashion-shop-app
+fashion-shop-app:
+  defines: runnable
+  metadata:
+    name: fashion-shop-app
+    description: >-
+      This is an online fashion retail app, which offers features like user
+      authentication, product search, personal information management, shopping
+      cart, and more.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    fashion-shop-app:
+      build: .
+      dockerfile: generate
+  services:
+    app-port:
+      container: fashion-shop-app
+      port: 5000
+      host-port: 5000
+      publish: false
+      protocol: TCP
+      description: The application runs on this port.
+  connections:
+    database:
+      target: fashion-shop-app/db
+      service: db
+    elasticsearch:
+      target: fashion-shop-app/grafana
+      service: grafana
+  variables:
+    secret-key:
+      env: SECRET_KEY
+      type: string
+      description: >-
+        Flask application's secret key used for securely signing the session
+        cookie and can be used for any other security related needs by
+        extensions or your application
+      value: '!!!SETME!!!'
+    sqlalchemy-database-uri:
+      env: SQLALCHEMY_DATABASE_URI
+      type: string
+      description: The database URI that should be used for the connection.
+      value: <- connection-hostname("database")
+db:
+  defines: runnable
+  inherits: cockroachdb/db
+grafana:
+  defines: runnable
+  inherits: monitoring/grafana
+stack:
+  defines: group
+  members:
+    - fashion-shop-app/fashion-shop-app
+    - fashion-shop-app/db
+    - fashion-shop-app/grafana
